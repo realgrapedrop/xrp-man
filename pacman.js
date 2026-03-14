@@ -3464,7 +3464,7 @@ var initRenderer = function(){
         canvas.style.top = y;
         console.log(canvas.style.left);
         */
-        document.body.style.marginLeft = (window.innerWidth - w)/2 + "px";
+        // Centering handled by CSS flexbox on body
     };
 
     // create foreground and background canvases
@@ -10180,26 +10180,42 @@ var homeState = (function(){
                 if (Math.floor(flashTimer/30) % 2 == 0) {
                     ctx.font = tileSize + "px ArcadeR";
                     ctx.fillStyle = "#FFD700";
-                    ctx.fillText("PRESS START", mapWidth/2, 14*tileSize);
+                    ctx.fillText("PRESS START", mapWidth/2, 11*tileSize);
                 }
 
-                // Ghost showcase in start screen
-                var y = 17*tileSize;
+                // Ghost showcase in start screen — 4 ghosts in a horizontal row
+                var y = 15*tileSize;
                 var ghostInfo = [
-                    { name: "BTC", color: "#F7931A", role: "THE CHASER" },
-                    { name: "SHARK", color: "#6B7B8D", role: "THE AMBUSHER" },
-                    { name: "WHALE", color: "#4B7BEF", role: "THE WILD CARD" },
-                    { name: "PEPE", color: "#00CC44", role: "THE RUG PULLER" },
+                    { name: "BTC", color: "#F7931A", ghostColor: blinky.color, role: "CHASER", desc: "SLOW AND" , desc2: "EXPENSIVE" },
+                    { name: "SHARK", color: "#6B7B8D", ghostColor: pinky.color, role: "AMBUSHER", desc: "PREYS ON", desc2: "SMALL ACCTS" },
+                    { name: "WHALE", color: "#4B7BEF", ghostColor: inky.color, role: "WILD CARD", desc: "MOVES", desc2: "MARKETS" },
+                    { name: "PEPE", color: "#00CC44", ghostColor: clyde.color, role: "RUG PULLER", desc: "PUMPS THEN", desc2: "VANISHES" },
                 ];
-                ctx.font = tileSize + "px ArcadeR";
+                var colW = mapWidth / 4;
                 for (var i = 0; i < ghostInfo.length; i++) {
                     var g = ghostInfo[i];
-                    var gx = mapWidth/2;
-                    var gy = y + i * 2.5 * tileSize;
+                    var cx = colW * i + colW / 2;
 
+                    // Draw ghost sprite
+                    var drawFunc = getGhostDrawFunc();
+                    drawFunc(ctx, cx, y, 0, DIR_DOWN, false, false, false, g.ghostColor);
+
+                    // Name
+                    ctx.font = (tileSize-1) + "px ArcadeR";
                     ctx.fillStyle = g.color;
                     ctx.textAlign = "center";
-                    ctx.fillText(g.name + " - " + g.role, gx, gy);
+                    ctx.textBaseline = "top";
+                    ctx.fillText(g.name, cx, y + tileSize + 2);
+
+                    // Role
+                    ctx.font = (tileSize-3) + "px ArcadeR";
+                    ctx.fillStyle = "#DDD";
+                    ctx.fillText(g.role, cx, y + 2*tileSize + 4);
+
+                    // Description
+                    ctx.fillStyle = "#888";
+                    ctx.fillText(g.desc, cx, y + 3*tileSize + 4);
+                    ctx.fillText(g.desc2, cx, y + 3.8*tileSize + 4);
                 }
             });
         },

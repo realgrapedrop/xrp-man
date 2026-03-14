@@ -116,7 +116,7 @@ var initRenderer = function(){
         canvas.style.top = y;
         console.log(canvas.style.left);
         */
-        document.body.style.marginLeft = (window.innerWidth - w)/2 + "px";
+        // Centering handled by CSS flexbox on body
     };
 
     // create foreground and background canvases
