@@ -76,8 +76,20 @@ function audioTrack(url, volume) {
     };
     this.isPaused = function() {
         return audio.paused;
-    }; 
+    };
     this.stop = this.stopLoop;
+    // Briefly play and pause to unlock this audio on iOS
+    this.unlock = function() {
+        var vol = audio.volume;
+        audio.volume = 0;
+        audio.play().then(function(){
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = vol;
+        }).catch(function(){
+            audio.volume = vol;
+        });
+    };
 
     function audioLoop(noResetTime) {
         playSound(noResetTime);
@@ -93,7 +105,7 @@ function audioTrack(url, volume) {
             if(playPromise) {
                 playPromise.then(function(){}).catch(function(err){});
             }
-        } 
+        }
         catch(err){ console.error(err) }
     }
 }
@@ -4488,27 +4500,29 @@ var initRenderer = function(){
             }
         },
 
-        // Draw XRP Man ghost house transaction ticker
+        // Draw XRP Man transaction ticker in the top HUD area
         drawGhostHouseTicker: function() {
             if (gameMode != GAME_XRPMAN || !xrpCurrentTx) return;
 
-            // Ghost house interior coordinates (the ghost pen area)
-            var ghX = 11*tileSize;
-            var ghY = 15*tileSize + 2;
-            var ghW = 6*tileSize;
-            var ghH = 2.5*tileSize;
+            // Centered horizontally, just below the score line
+            var y = 2*tileSize;
 
-            // Draw current transaction
-            ctx.fillStyle = xrpCurrentTx.color;
-            ctx.font = 'bold ' + (tileSize-4) + 'px ArcadeR';
+            ctx.font = (tileSize-3) + 'px ArcadeR';
+            ctx.textBaseline = 'top';
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(xrpCurrentTx.text, ghX + ghW/2, ghY + ghH/2 - 1);
 
-            // "validating..." label
-            ctx.fillStyle = '#444';
-            ctx.font = (tileSize-5) + 'px ArcadeR';
-            ctx.fillText('validating...', ghX + ghW/2, ghY + ghH/2 + tileSize - 2);
+            // "TX:" label + transaction text together, centered
+            ctx.fillStyle = '#555';
+            var fullText = 'TX: ';
+            var labelWidth = ctx.measureText(fullText).width;
+            var txWidth = ctx.measureText(xrpCurrentTx.text).width;
+            var totalWidth = labelWidth + txWidth;
+            var startX = mapWidth/2 - totalWidth/2;
+
+            ctx.textAlign = 'left';
+            ctx.fillText(fullText, startX, y);
+            ctx.fillStyle = xrpCurrentTx.color;
+            ctx.fillText(xrpCurrentTx.text, startX + labelWidth, y);
         },
 
     });
@@ -10146,7 +10160,7 @@ var homeState = (function(){
             gameMode = GAME_XRPMAN;
             practiceMode = false;
             turboMode = false;
-            audio.coffeeBreakMusic.startLoop();
+            audio.coffeeBreakMusic.play();
         },
         draw: function() {
             renderer.clearMapFrame();
@@ -10170,24 +10184,22 @@ var homeState = (function(){
                 }
 
                 // Ghost showcase in start screen
-                var y = 18*tileSize;
+                var y = 17*tileSize;
                 var ghostInfo = [
-                    { name: "BTC", color: "#F7931A", role: "THE CHASER", desc: "SLOW AND EXPENSIVE" },
-                    { name: "SHARK", color: "#6B7B8D", role: "THE AMBUSHER", desc: "PREYS ON SMALL ACCOUNTS" },
-                    { name: "WHALE", color: "#4B7BEF", role: "THE WILD CARD", desc: "MOVES MARKETS ON A WHIM" },
-                    { name: "PEPE", color: "#00CC44", role: "THE RUG PULLER", desc: "PUMPS THEN VANISHES" },
+                    { name: "BTC", color: "#F7931A", role: "THE CHASER" },
+                    { name: "SHARK", color: "#6B7B8D", role: "THE AMBUSHER" },
+                    { name: "WHALE", color: "#4B7BEF", role: "THE WILD CARD" },
+                    { name: "PEPE", color: "#00CC44", role: "THE RUG PULLER" },
                 ];
-                ctx.font = (tileSize-2) + "px ArcadeR";
+                ctx.font = tileSize + "px ArcadeR";
                 for (var i = 0; i < ghostInfo.length; i++) {
                     var g = ghostInfo[i];
                     var gx = mapWidth/2;
-                    var gy = y + i * 3 * tileSize;
+                    var gy = y + i * 2.5 * tileSize;
 
                     ctx.fillStyle = g.color;
                     ctx.textAlign = "center";
                     ctx.fillText(g.name + " - " + g.role, gx, gy);
-                    ctx.fillStyle = "#888";
-                    ctx.fillText(g.desc, gx, gy + tileSize + 2);
                 }
             });
         },
@@ -11847,6 +11859,21 @@ var overState = (function() {
 // Input
 // (Handles all key presses and touches)
 
+// Unlock audio for iOS (must be called from user gesture)
+var xrpAudioUnlocked = false;
+var unlockXRPAudio = function() {
+    if (xrpAudioUnlocked) return;
+    xrpAudioUnlocked = true;
+    audio.eating.unlock();
+    audio.die.unlock();
+    audio.eatingGhost.unlock();
+    audio.eatingFruit.unlock();
+    audio.ghostTurnToBlue.unlock();
+    audio.ghostNormalMove.unlock();
+    audio.ghostReturnToHome.unlock();
+    audio.extend.unlock();
+};
+
 (function(){
 
     // A Key Listener class (each key maps to an array of callbacks)
@@ -12041,6 +12068,7 @@ var overState = (function() {
         return state == homeState || state == xrpFinalState;
     };
     var startXRPGame = function() {
+        unlockXRPAudio();
         gameMode = GAME_XRPMAN;
         practiceMode = false;
         turboMode = false;
@@ -12068,8 +12096,21 @@ var initSwipe = function() {
     
     var touchStart = function(event) {
         event.preventDefault();
+
+
         var fingerCount = event.touches.length;
         if (fingerCount == 1) {
+
+            // XRP Man: tap to start game from start/final screen
+            if (state == homeState || state == xrpFinalState) {
+                unlockXRPAudio();
+                gameMode = GAME_XRPMAN;
+                practiceMode = false;
+                turboMode = false;
+                newGameState.setStartLevel(1);
+                switchState(newGameState, 60);
+                return;
+            }
 
             // commit new anchor
             x = event.touches[0].pageX;
@@ -12123,6 +12164,7 @@ var initSwipe = function() {
     var touchTap = function(event) {
         // XRP Man: tap to start game from start/final screen
         if (state == homeState || state == xrpFinalState) {
+            unlockXRPAudio();
             gameMode = GAME_XRPMAN;
             practiceMode = false;
             turboMode = false;

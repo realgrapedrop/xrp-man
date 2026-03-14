@@ -1152,27 +1152,29 @@ var initRenderer = function(){
             }
         },
 
-        // Draw XRP Man ghost house transaction ticker
+        // Draw XRP Man transaction ticker in the top HUD area
         drawGhostHouseTicker: function() {
             if (gameMode != GAME_XRPMAN || !xrpCurrentTx) return;
 
-            // Ghost house interior coordinates (the ghost pen area)
-            var ghX = 11*tileSize;
-            var ghY = 15*tileSize + 2;
-            var ghW = 6*tileSize;
-            var ghH = 2.5*tileSize;
+            // Centered horizontally, just below the score line
+            var y = 2*tileSize;
 
-            // Draw current transaction
-            ctx.fillStyle = xrpCurrentTx.color;
-            ctx.font = 'bold ' + (tileSize-4) + 'px ArcadeR';
+            ctx.font = (tileSize-3) + 'px ArcadeR';
+            ctx.textBaseline = 'top';
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(xrpCurrentTx.text, ghX + ghW/2, ghY + ghH/2 - 1);
 
-            // "validating..." label
-            ctx.fillStyle = '#444';
-            ctx.font = (tileSize-5) + 'px ArcadeR';
-            ctx.fillText('validating...', ghX + ghW/2, ghY + ghH/2 + tileSize - 2);
+            // "TX:" label + transaction text together, centered
+            ctx.fillStyle = '#555';
+            var fullText = 'TX: ';
+            var labelWidth = ctx.measureText(fullText).width;
+            var txWidth = ctx.measureText(xrpCurrentTx.text).width;
+            var totalWidth = labelWidth + txWidth;
+            var startX = mapWidth/2 - totalWidth/2;
+
+            ctx.textAlign = 'left';
+            ctx.fillText(fullText, startX, y);
+            ctx.fillStyle = xrpCurrentTx.color;
+            ctx.fillText(xrpCurrentTx.text, startX + labelWidth, y);
         },
 
     });

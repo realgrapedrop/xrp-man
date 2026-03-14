@@ -93,7 +93,7 @@ var homeState = (function(){
             gameMode = GAME_XRPMAN;
             practiceMode = false;
             turboMode = false;
-            audio.coffeeBreakMusic.startLoop();
+            audio.coffeeBreakMusic.play();
         },
         draw: function() {
             renderer.clearMapFrame();
@@ -117,24 +117,22 @@ var homeState = (function(){
                 }
 
                 // Ghost showcase in start screen
-                var y = 18*tileSize;
+                var y = 17*tileSize;
                 var ghostInfo = [
-                    { name: "BTC", color: "#F7931A", role: "THE CHASER", desc: "SLOW AND EXPENSIVE" },
-                    { name: "SHARK", color: "#6B7B8D", role: "THE AMBUSHER", desc: "PREYS ON SMALL ACCOUNTS" },
-                    { name: "WHALE", color: "#4B7BEF", role: "THE WILD CARD", desc: "MOVES MARKETS ON A WHIM" },
-                    { name: "PEPE", color: "#00CC44", role: "THE RUG PULLER", desc: "PUMPS THEN VANISHES" },
+                    { name: "BTC", color: "#F7931A", role: "THE CHASER" },
+                    { name: "SHARK", color: "#6B7B8D", role: "THE AMBUSHER" },
+                    { name: "WHALE", color: "#4B7BEF", role: "THE WILD CARD" },
+                    { name: "PEPE", color: "#00CC44", role: "THE RUG PULLER" },
                 ];
-                ctx.font = (tileSize-2) + "px ArcadeR";
+                ctx.font = tileSize + "px ArcadeR";
                 for (var i = 0; i < ghostInfo.length; i++) {
                     var g = ghostInfo[i];
                     var gx = mapWidth/2;
-                    var gy = y + i * 3 * tileSize;
+                    var gy = y + i * 2.5 * tileSize;
 
                     ctx.fillStyle = g.color;
                     ctx.textAlign = "center";
                     ctx.fillText(g.name + " - " + g.role, gx, gy);
-                    ctx.fillStyle = "#888";
-                    ctx.fillText(g.desc, gx, gy + tileSize + 2);
                 }
             });
         },

@@ -2,6 +2,21 @@
 // Input
 // (Handles all key presses and touches)
 
+// Unlock audio for iOS (must be called from user gesture)
+var xrpAudioUnlocked = false;
+var unlockXRPAudio = function() {
+    if (xrpAudioUnlocked) return;
+    xrpAudioUnlocked = true;
+    audio.eating.unlock();
+    audio.die.unlock();
+    audio.eatingGhost.unlock();
+    audio.eatingFruit.unlock();
+    audio.ghostTurnToBlue.unlock();
+    audio.ghostNormalMove.unlock();
+    audio.ghostReturnToHome.unlock();
+    audio.extend.unlock();
+};
+
 (function(){
 
     // A Key Listener class (each key maps to an array of callbacks)
@@ -196,6 +211,7 @@
         return state == homeState || state == xrpFinalState;
     };
     var startXRPGame = function() {
+        unlockXRPAudio();
         gameMode = GAME_XRPMAN;
         practiceMode = false;
         turboMode = false;
@@ -223,8 +239,21 @@ var initSwipe = function() {
     
     var touchStart = function(event) {
         event.preventDefault();
+
+
         var fingerCount = event.touches.length;
         if (fingerCount == 1) {
+
+            // XRP Man: tap to start game from start/final screen
+            if (state == homeState || state == xrpFinalState) {
+                unlockXRPAudio();
+                gameMode = GAME_XRPMAN;
+                practiceMode = false;
+                turboMode = false;
+                newGameState.setStartLevel(1);
+                switchState(newGameState, 60);
+                return;
+            }
 
             // commit new anchor
             x = event.touches[0].pageX;
@@ -278,6 +307,7 @@ var initSwipe = function() {
     var touchTap = function(event) {
         // XRP Man: tap to start game from start/final screen
         if (state == homeState || state == xrpFinalState) {
+            unlockXRPAudio();
             gameMode = GAME_XRPMAN;
             practiceMode = false;
             turboMode = false;

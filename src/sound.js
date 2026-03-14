@@ -27,8 +27,20 @@ function audioTrack(url, volume) {
     };
     this.isPaused = function() {
         return audio.paused;
-    }; 
+    };
     this.stop = this.stopLoop;
+    // Briefly play and pause to unlock this audio on iOS
+    this.unlock = function() {
+        var vol = audio.volume;
+        audio.volume = 0;
+        audio.play().then(function(){
+            audio.pause();
+            audio.currentTime = 0;
+            audio.volume = vol;
+        }).catch(function(){
+            audio.volume = vol;
+        });
+    };
 
     function audioLoop(noResetTime) {
         playSound(noResetTime);
@@ -44,7 +56,7 @@ function audioTrack(url, volume) {
             if(playPromise) {
                 playPromise.then(function(){}).catch(function(err){});
             }
-        } 
+        }
         catch(err){ console.error(err) }
     }
 }
