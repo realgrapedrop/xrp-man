@@ -17,7 +17,11 @@ Four ghosts stand in your way:
 - **Whale** -- The Wild Card. Moves markets on a whim, impossible to predict.
 - **Pepe** -- The Rug Puller. Pumps 10,000% then vanishes overnight.
 
-Grab the green glowing orbs in the corners to trigger FUD mode. All ghosts scatter and you can eat them for bonus points.
+## FUD Mode
+
+FUD stands for Fear, Uncertainty, and Doubt. In crypto, FUD is negative sentiment that causes panic selling. In XRP Man, you can turn it against the ghosts.
+
+The green glowing orbs in the corners are whale transactions. When you eat one, all four ghosts enter FUD mode. They panic, turn red, and scatter. While they're running scared, you can eat them for bonus points. The effect wears off after a few seconds, so move fast.
 
 ## Levels
 
