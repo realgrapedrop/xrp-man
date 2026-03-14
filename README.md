@@ -2,47 +2,35 @@
 
 Learn to Ledger with XRP Man. An XRP-themed Pac-Man game that teaches XRP Ledger concepts through gameplay.
 
-![XRP Man](/shots/xrp-man-preview.png)
+![XRP Man Gameplay](/shots/xrp-man-game-preview.png)
 
-## Play
+## How It Works
 
-Swipe or use arrow keys to navigate. Collect transactions, avoid the ghosts, eat whale transactions to trigger FUD mode.
+You are an XRPL validator. Collect transactions, avoid the ghosts, and validate the ledger across 3 levels. Press start and go.
 
-### Controls
+![Start Screen](/shots/xrp-man-home-preview.png)
 
-- **Swipe**: steer on mobile
-- **Arrow keys**: steer on desktop
-- **Enter/Space**: start game
-- **Escape**: open in-game menu
+Four ghosts stand in your way:
 
-## The Game
+- **BTC** -- The Chaser. Slow and expensive, but never stops coming.
+- **Shark** -- The Ambusher. Preys on small accounts when you least expect it.
+- **Whale** -- The Wild Card. Moves markets on a whim, impossible to predict.
+- **Pepe** -- The Rug Puller. Pumps 10,000% then vanishes overnight.
 
-You play as an XRPL validator collecting transactions across 3 themed levels.
+Grab the green glowing orbs in the corners to trigger FUD mode. All ghosts scatter and you can eat them for bonus points.
 
-### Levels
+## Levels
 
 1. **The Ledger** -- Collect XRP transactions. Gold coin dots.
 2. **The DEX** -- Fill trade orders on the built-in decentralized exchange. Blue swap dots.
 3. **Consensus** -- Confirm validator votes as the network reaches consensus. Green checkmark dots.
 
-### Ghosts
+## Controls
 
-| Ghost | Behavior | Description |
-|-------|----------|-------------|
-| **BTC** | Chaser | Slow and expensive, but never stops coming |
-| **Shark** | Ambusher | Preys on small accounts when you least expect it |
-| **Whale** | Wild Card | Moves markets on a whim, impossible to predict |
-| **Pepe** | Rug Puller | Pumps 10,000% then vanishes overnight |
-
-### Power-Ups
-
-Green glowing orbs in the corners are whale transactions. Eating one puts all ghosts in FUD mode -- they scatter and you can eat them for bonus points.
-
-### Bonus Items
-
-- **Level 1**: RLUSD coin (Ripple's stablecoin)
-- **Level 2**: Gavel (SEC settlement victory)
-- **Level 3**: Ledger crystal (validator crystal)
+- **Swipe**: steer on mobile
+- **Arrow keys**: steer on desktop
+- **Enter/Space**: start game
+- **Escape**: open in-game menu
 
 ## Development
 
@@ -50,7 +38,7 @@ No build step needed for development. Open `debug.html` in a browser.
 
 To build the production bundle:
 
-```
+```bash
 bash build.sh
 ```
 
