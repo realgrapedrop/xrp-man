@@ -334,13 +334,95 @@ MsPacFruit.prototype = newChildObject(BaseFruit.prototype, {
     },
 });
 
+// XRP Man Fruit
+var XRPFruit = function() {
+    BaseFruit.call(this);
+    this.fruits = [
+        {name:'rlusd',    points:500},   // Level 1: RLUSD coin
+        {name:'gavel',    points:1000},  // Level 2: Gavel
+        {name:'crystal',  points:2000},  // Level 3: Ledger crystal
+    ];
+
+    this.order = [0, 1, 2];
+
+    this.dotLimit1 = 70;
+    this.dotLimit2 = 170;
+
+    this.duration = 9;
+    this.framesLeft;
+    this.savedFramesLeft = {};
+};
+
+XRPFruit.prototype = newChildObject(BaseFruit.prototype, {
+
+    onNewLevel: function() {
+        var idx = Math.min(level, 3) - 1;
+        this.setCurrentFruit(idx);
+        BaseFruit.prototype.onNewLevel.call(this);
+    },
+
+    getFruitFromLevel: function(i) {
+        if (i > 3) i = 3;
+        return this.fruits[i-1];
+    },
+
+    getFruitIndexFromLevel: function(i) {
+        if (i > 3) i = 3;
+        return i-1;
+    },
+
+    buildFruitHistory: function() {
+        this.fruitHistory = {};
+        var i;
+        for (i=1; i<= level; i++) {
+            this.fruitHistory[i] = this.fruits[Math.min(i,3)-1];
+        }
+    },
+
+    initiate: function() {
+        var x = 13;
+        var y = 20;
+        this.pixel.x = tileSize*(1+x)-1;
+        this.pixel.y = tileSize*y + midTile.y;
+        this.framesLeft = 60*this.duration;
+    },
+
+    isPresent: function() {
+        return this.framesLeft > 0;
+    },
+
+    reset: function() {
+        BaseFruit.prototype.reset.call(this);
+        this.framesLeft = 0;
+    },
+
+    update: function() {
+        BaseFruit.prototype.update.call(this);
+        if (this.framesLeft > 0)
+            this.framesLeft--;
+    },
+
+    save: function(t) {
+        BaseFruit.prototype.save.call(this,t);
+        this.savedFramesLeft[t] = this.framesLeft;
+    },
+    load: function(t) {
+        BaseFruit.prototype.load.call(this,t);
+        this.framesLeft = this.savedFramesLeft[t];
+    },
+});
+
 var fruit;
 var setFruitFromGameMode = (function() {
     var pacfruit = new PacFruit();
     var mspacfruit = new MsPacFruit();
+    var xrpfruit = new XRPFruit();
     fruit = pacfruit;
     return function() {
-        if (gameMode == GAME_PACMAN) {
+        if (gameMode == GAME_XRPMAN) {
+            fruit = xrpfruit;
+        }
+        else if (gameMode == GAME_PACMAN) {
             fruit = pacfruit;
         }
         else {

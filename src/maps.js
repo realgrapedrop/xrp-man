@@ -181,8 +181,27 @@ var getLevelAct = function(level) {
     }
 };
 
+// XRP Man level colors
+var xrpLevelColors = [
+    // Level 1: The Ledger — gold dots
+    { wallFillColor: "#1A3A5C", wallStrokeColor: "#0088CC", pelletColor: "#FFD700" },
+    // Level 2: The DEX — blue dots
+    { wallFillColor: "#1A3A5C", wallStrokeColor: "#0088CC", pelletColor: "#0088CC" },
+    // Level 3: Consensus — green dots
+    { wallFillColor: "#1A3A5C", wallStrokeColor: "#0088CC", pelletColor: "#00CC66" },
+];
+
+var getXRPLevelColor = function(lvl) {
+    if (lvl < 1) lvl = 1;
+    if (lvl > 3) lvl = 3;
+    return xrpLevelColors[lvl-1];
+};
+
 var getActColor = function(act) {
-    if (gameMode == GAME_PACMAN) {
+    if (gameMode == GAME_XRPMAN) {
+        return getXRPLevelColor(level);
+    }
+    else if (gameMode == GAME_PACMAN) {
         return {
             wallFillColor: mapPacman.wallFillColor,
             wallStrokeColor: mapPacman.wallStrokeColor,

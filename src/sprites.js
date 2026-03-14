@@ -2361,6 +2361,75 @@ var drawCookieFlash = function(ctx,x,y) {
     ctx.restore();
 };
 
+// XRP Man fruit sprites
+
+// RLUSD coin (Level 1 fruit)
+var drawRLUSD = function(ctx, x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    // Gold coin
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, Math.PI*2);
+    ctx.fillStyle = '#FFD700';
+    ctx.fill();
+    ctx.strokeStyle = '#CC9900';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // $ symbol
+    ctx.fillStyle = '#664400';
+    ctx.font = 'bold 7px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('$', 0, 0);
+    ctx.restore();
+};
+
+// Gavel (Level 2 fruit — SEC settlement)
+var drawGavel = function(ctx, x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    // Handle
+    ctx.fillStyle = '#8B4513';
+    ctx.fillRect(-1, -2, 2, 7);
+    // Head
+    ctx.fillStyle = '#A0522D';
+    ctx.fillRect(-4, -5, 8, 4);
+    // Highlights
+    ctx.fillStyle = '#CD853F';
+    ctx.fillRect(-3, -4, 6, 2);
+    ctx.restore();
+};
+
+// Ledger crystal (Level 3 fruit)
+var drawCrystal = function(ctx, x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    // Crystal shape (hexagon-ish)
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.lineTo(4, -3);
+    ctx.lineTo(4, 3);
+    ctx.lineTo(0, 6);
+    ctx.lineTo(-4, 3);
+    ctx.lineTo(-4, -3);
+    ctx.closePath();
+    ctx.fillStyle = '#00CC66';
+    ctx.fill();
+    ctx.strokeStyle = '#009944';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // Inner highlight
+    ctx.beginPath();
+    ctx.moveTo(0, -3);
+    ctx.lineTo(2, -1);
+    ctx.lineTo(0, 3);
+    ctx.lineTo(-2, -1);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fill();
+    ctx.restore();
+};
+
 var getSpriteFuncFromFruitName = function(name) {
     var funcs = {
         'cherry': drawCherry,
@@ -2375,6 +2444,9 @@ var getSpriteFuncFromFruitName = function(name) {
         'pear': drawPear,
         'banana': drawBanana,
         'cookie': drawCookie,
+        'rlusd': drawRLUSD,
+        'gavel': drawGavel,
+        'crystal': drawCrystal,
     };
 
     return funcs[name];

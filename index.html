@@ -3,39 +3,64 @@
 
 <head>
 
-    <title>Pac-Man</title>
-    <!-- last updated: Sun May 14 21:10:27 PDT 2023 -->
-    <!-- Lock viewport on mobile devices. -->
-    <!--
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />
+    <title>XRP Man - Learn to Ledger</title>
+    <!-- last updated: 2026-03-14 07:19:42 --><meta charset="utf-8">
+    <meta name="description" content="Learn to Ledger with XRP Man. An XRP-themed Pac-Man game that teaches XRP Ledger concepts through gameplay.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    -->
     <!-- Allow page to be saved as web app on iOS. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
-
-    <!-- Hide status bar -->
     <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <!-- icon used for iOS Web App -->
     <link rel="apple-touch-icon-precomposed" href="icon/ios_icon.png"/>
-
     <link rel="icon" type="image/png" href="icon/favicon.png"/>
 
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin:0;
             background: #000;
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
         }
         @font-face {
             font-family: 'ArcadeR';
             src: url('font/ARCADE_R.TTF');
-            /*
-            src: url('font/PressStart2P.ttf');
-            */
         }
         #canvas-warning {
             color: #FF0;
             font-size: 1.5em;
+        }
+        .ghost-panel {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            padding: 12px 16px;
+            background: #111;
+            border-top: 1px solid #222;
+            flex-wrap: wrap;
+        }
+        .ghost-card {
+            text-align: center;
+            min-width: 100px;
+        }
+        .ghost-card .name {
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .ghost-card .role {
+            color: #999;
+            font-size: 9px;
+            font-family: 'Courier New', monospace;
+        }
+        .ghost-card .desc {
+            color: #666;
+            font-size: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 3px;
+            max-width: 140px;
         }
     </style>
 
@@ -45,11 +70,33 @@
 
 <body>
 
-</div>
-
     <div style='font-family: ArcadeR'> </div>
-    <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.  Please upgrade!</div></canvas>
+    <canvas id='canvas'><div id="canvas-warning">Your browser does not support HTML Canvas.</div></canvas>
     <canvas id='atlas' style="display:none"></canvas>
+
+    <!-- Ghost showcase panel -->
+    <div class="ghost-panel" id="ghost-panel">
+        <div class="ghost-card">
+            <div class="name" style="color:#F7931A">BTC</div>
+            <div class="role">The Chaser</div>
+            <div class="desc">Slow and expensive, but never stops coming</div>
+        </div>
+        <div class="ghost-card">
+            <div class="name" style="color:#6B7B8D">SHARK</div>
+            <div class="role">The Ambusher</div>
+            <div class="desc">Preys on small accounts when you least expect it</div>
+        </div>
+        <div class="ghost-card">
+            <div class="name" style="color:#4B7BEF">WHALE</div>
+            <div class="role">The Wild Card</div>
+            <div class="desc">Moves markets on a whim, impossible to predict</div>
+        </div>
+        <div class="ghost-card">
+            <div class="name" style="color:#00CC44">PEPE</div>
+            <div class="role">The Rug Puller</div>
+            <div class="desc">Pumps 10,000% then vanishes overnight</div>
+        </div>
+    </div>
 
 </body>
 

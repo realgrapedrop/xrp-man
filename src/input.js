@@ -191,6 +191,21 @@
 
     addKeyDown(KEY_END, function() { executive.togglePause(); });
 
+    // XRP Man: Start game from home screen or final screen
+    var isXRPStartScreen = function() {
+        return state == homeState || state == xrpFinalState;
+    };
+    var startXRPGame = function() {
+        gameMode = GAME_XRPMAN;
+        practiceMode = false;
+        turboMode = false;
+        newGameState.setStartLevel(1);
+        switchState(newGameState, 60);
+        return true;
+    };
+    addKeyDown(KEY_ENTER, startXRPGame, isXRPStartScreen);
+    addKeyDown(KEY_SPACE, startXRPGame, isXRPStartScreen);
+
 })();
 
 var initSwipe = function() {
@@ -261,6 +276,15 @@ var initSwipe = function() {
     };
 
     var touchTap = function(event) {
+        // XRP Man: tap to start game from start/final screen
+        if (state == homeState || state == xrpFinalState) {
+            gameMode = GAME_XRPMAN;
+            practiceMode = false;
+            turboMode = false;
+            newGameState.setStartLevel(1);
+            switchState(newGameState, 60);
+            return;
+        }
         // tap to clear input directions
         pacman.clearInputDir(undefined);
     };

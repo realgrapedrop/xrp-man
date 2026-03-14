@@ -501,6 +501,197 @@ var atlas = (function(){
         copyCellTo(row,col,destCtx,x,y);
     };
 
+    // XRP Man ghost sprite: draws directly to context (not from atlas cache)
+    var drawXRPGhostDirect = function(destCtx, x, y, frame, dirEnum, scared, flash, eyes_only, color) {
+        if (scared || eyes_only) {
+            // Use standard ghost sprite for scared/eyes states
+            copyGhostSprite(destCtx, x, y, frame, dirEnum, scared, flash, eyes_only, color);
+            return;
+        }
+
+        destCtx.save();
+        destCtx.translate(x, y);
+
+        var s = size/2 * 0.8; // half-size
+        var w = s;
+        var h = s * 1.1;
+
+        // Ghost body
+        destCtx.beginPath();
+        destCtx.arc(0, -h*0.15, w, Math.PI, 0);
+        destCtx.lineTo(w, h*0.55);
+        var segments = 4;
+        var waveAmp = frame ? 0.35 : 0.55;
+        for (var i = 0; i < segments; i++) {
+            var startX = w - (i * w * 2 / segments);
+            var midX = startX - w / segments;
+            var endX = startX - w * 2 / segments;
+            destCtx.quadraticCurveTo(midX, h*waveAmp, endX, h*0.55);
+        }
+        destCtx.closePath();
+        destCtx.fillStyle = color;
+        destCtx.fill();
+
+        // Ghost-specific features based on color
+        if (color == blinky.color) {
+            // BTC: white bitcoin symbol on forehead
+            destCtx.fillStyle = '#FFF';
+            destCtx.font = 'bold 7px sans-serif';
+            destCtx.textAlign = 'center';
+            destCtx.textBaseline = 'middle';
+            destCtx.fillText('\u20BF', 0, -h*0.55);
+        }
+        else if (color == pinky.color) {
+            // Shark: light inner body + dorsal fin
+            destCtx.beginPath();
+            destCtx.arc(0, -h*0.15, w*0.6, Math.PI, 0);
+            destCtx.lineTo(w*0.6, h*0.3);
+            destCtx.lineTo(-w*0.6, h*0.3);
+            destCtx.closePath();
+            destCtx.fillStyle = '#A8B8C8';
+            destCtx.fill();
+            // Fin
+            destCtx.beginPath();
+            destCtx.moveTo(-1, -h*0.55);
+            destCtx.lineTo(2, -h*1.1);
+            destCtx.lineTo(5, -h*0.45);
+            destCtx.closePath();
+            destCtx.fillStyle = '#5A6A7A';
+            destCtx.fill();
+        }
+        else if (color == inky.color) {
+            // Whale: lighter belly + water spout
+            destCtx.beginPath();
+            destCtx.ellipse(0, h*0.1, w*0.55, h*0.18, 0, 0, Math.PI);
+            destCtx.fillStyle = '#3B6FDF';
+            destCtx.fill();
+            // Water spout
+            destCtx.strokeStyle = '#5B8FFF';
+            destCtx.lineWidth = 0.8;
+            destCtx.beginPath(); destCtx.moveTo(0, -h*0.6); destCtx.lineTo(-1.5, -h*0.85); destCtx.stroke();
+            destCtx.beginPath(); destCtx.moveTo(0, -h*0.6); destCtx.lineTo(1.5, -h*0.85); destCtx.stroke();
+            destCtx.beginPath(); destCtx.moveTo(0, -h*0.6); destCtx.lineTo(0, -h*0.9); destCtx.stroke();
+        }
+        else if (color == clyde.color) {
+            // Pepe: lighter belly
+            destCtx.beginPath();
+            destCtx.ellipse(0, h*0.1, w*0.55, h*0.2, 0, 0, Math.PI);
+            destCtx.fillStyle = '#66DD66';
+            destCtx.fill();
+        }
+
+        // Eyes
+        var ex = 0;
+        if (dirEnum == DIR_LEFT) ex = -1.5;
+        else if (dirEnum == DIR_RIGHT) ex = 1.5;
+        var ey = 0;
+        if (dirEnum == DIR_UP) ey = -1.5;
+        else if (dirEnum == DIR_DOWN) ey = 1.5;
+
+        if (color == clyde.color) {
+            // Pepe: big frog eyes with half-closed lids
+            destCtx.fillStyle = '#FFF';
+            destCtx.beginPath(); destCtx.arc(-3.5, -3, 3.5, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.arc(3.5, -3, 3.5, 0, Math.PI*2); destCtx.fill();
+            destCtx.fillStyle = '#111';
+            destCtx.beginPath(); destCtx.arc(-3.5+ex, -3+ey, 1.5, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.arc(3.5+ex, -3+ey, 1.5, 0, Math.PI*2); destCtx.fill();
+            // Droopy lids
+            destCtx.fillStyle = color;
+            destCtx.beginPath(); destCtx.ellipse(-3.5, -5, 4, 2.5, 0, 0, Math.PI); destCtx.fill();
+            destCtx.beginPath(); destCtx.ellipse(3.5, -5, 4, 2.5, 0, 0, Math.PI); destCtx.fill();
+            // Smug grin
+            destCtx.strokeStyle = '#005500';
+            destCtx.lineWidth = 1;
+            destCtx.beginPath(); destCtx.arc(0, 2, 4.5, 0.1, Math.PI-0.1); destCtx.stroke();
+        }
+        else if (color == inky.color) {
+            // Whale: big round eyes
+            destCtx.fillStyle = '#FFF';
+            destCtx.beginPath(); destCtx.arc(-3.5, -1, 3.5, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.arc(3.5, -1, 3.5, 0, Math.PI*2); destCtx.fill();
+            destCtx.fillStyle = '#1A1A3A';
+            destCtx.beginPath(); destCtx.arc(-3.5+ex, -1+ey, 1.8, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.arc(3.5+ex, -1+ey, 1.8, 0, Math.PI*2); destCtx.fill();
+        }
+        else if (color == pinky.color) {
+            // Shark: slightly narrow eyes
+            destCtx.fillStyle = '#FFF';
+            destCtx.beginPath(); destCtx.ellipse(-3.5, -1, 3.2, 2.5, 0, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.ellipse(3.5, -1, 3.2, 2.5, 0, 0, Math.PI*2); destCtx.fill();
+            destCtx.fillStyle = '#111';
+            destCtx.beginPath(); destCtx.arc(-3.5+ex, -0.5+ey, 1.5, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.arc(3.5+ex, -0.5+ey, 1.5, 0, Math.PI*2); destCtx.fill();
+        }
+        else {
+            // BTC and default: standard round eyes
+            destCtx.fillStyle = '#FFF';
+            destCtx.beginPath(); destCtx.arc(-3.5, -1, 3, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.arc(3.5, -1, 3, 0, Math.PI*2); destCtx.fill();
+            destCtx.fillStyle = '#1A1AFF';
+            destCtx.beginPath(); destCtx.arc(-3.5+ex, -1+ey, 1.5, 0, Math.PI*2); destCtx.fill();
+            destCtx.beginPath(); destCtx.arc(3.5+ex, -1+ey, 1.5, 0, Math.PI*2); destCtx.fill();
+        }
+
+        destCtx.restore();
+    };
+
+    // XRP Man player sprite: draws directly to context
+    var drawXRPManDirect = function(destCtx, x, y, dirEnum, frame, isFullDraw) {
+        destCtx.save();
+        destCtx.translate(x, y);
+
+        var r = size/2 * 0.75;
+
+        // Determine mouth angle from frame
+        var mouthAngle;
+        if (typeof frame === 'number') {
+            if (frame == 0) mouthAngle = 0;
+            else if (frame == 1) mouthAngle = Math.PI/6;
+            else mouthAngle = Math.PI/3;
+        } else {
+            mouthAngle = frame || 0; // frame can be angle directly
+        }
+
+        // Rotation based on direction
+        var rot = 0;
+        if (dirEnum == DIR_RIGHT) rot = 0;
+        else if (dirEnum == DIR_DOWN) rot = Math.PI/2;
+        else if (dirEnum == DIR_LEFT) rot = Math.PI;
+        else if (dirEnum == DIR_UP) rot = -Math.PI/2;
+
+        destCtx.rotate(rot);
+
+        // Draw pac-man body with gold gradient
+        destCtx.beginPath();
+        destCtx.arc(0, 0, r, mouthAngle, 2*Math.PI - mouthAngle);
+        destCtx.lineTo(0, 0);
+        destCtx.closePath();
+
+        var grad = destCtx.createRadialGradient(-1, -1, 0, 0, 0, r);
+        grad.addColorStop(0, '#FFE566');
+        grad.addColorStop(0.4, '#FFD700');
+        grad.addColorStop(1, '#CC9900');
+        destCtx.fillStyle = grad;
+        destCtx.fill();
+
+        // Draw {X} validator symbol (only when mouth is not wide open)
+        if (mouthAngle < Math.PI/2) {
+            destCtx.strokeStyle = '#664400';
+            destCtx.lineWidth = 0.8;
+            destCtx.lineCap = 'round';
+
+            // X in center (XRP bowtie) — simplified for small size
+            var xs = r * 0.35;
+            destCtx.beginPath(); destCtx.moveTo(-xs, -xs); destCtx.lineTo(0, -1); destCtx.stroke();
+            destCtx.beginPath(); destCtx.moveTo(xs, -xs); destCtx.lineTo(0, -1); destCtx.stroke();
+            destCtx.beginPath(); destCtx.moveTo(0, 1); destCtx.lineTo(-xs, xs); destCtx.stroke();
+            destCtx.beginPath(); destCtx.moveTo(0, 1); destCtx.lineTo(xs, xs); destCtx.stroke();
+        }
+
+        destCtx.restore();
+    };
+
     return {
         create: create,
         getCanvas: function() { return canvas; },
@@ -517,5 +708,7 @@ var atlas = (function(){
         drawPacFruitPoints: copyPacFruitPoints,
         drawMsPacFruitPoints: copyMsPacFruitPoints,
         drawSnail: copySnail,
+        drawXRPGhostSprite: drawXRPGhostDirect,
+        drawXRPManSprite: drawXRPManDirect,
     };
 })();

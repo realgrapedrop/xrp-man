@@ -432,8 +432,13 @@ var initRenderer = function(){
         },
 
         drawReadyMessage: function() {
-            this.drawMessage("READY ","#FF0",11,20);
-            drawExclamationPoint(ctx,16*tileSize+3, 20*tileSize+3);
+            if (gameMode == GAME_XRPMAN) {
+                this.drawMessage("READY ","#FFD700",11,20);
+                drawExclamationPoint(ctx,16*tileSize+3, 20*tileSize+3);
+            } else {
+                this.drawMessage("READY ","#FF0",11,20);
+                drawExclamationPoint(ctx,16*tileSize+3, 20*tileSize+3);
+            }
         },
 
         // draw the points earned from the most recently eaten ghost
@@ -648,8 +653,8 @@ var initRenderer = function(){
         this.pelletSize = 2;
         this.energizerSize = tileSize;
 
-        this.backColor = "#000";
-        this.floorColor = "#000";
+        this.backColor = (gameMode == GAME_XRPMAN) ? "#0A0A0A" : "#000";
+        this.floorColor = (gameMode == GAME_XRPMAN) ? "#0A0A0A" : "#000";
         this.flashWallColor = "#FFF";
 
         this.name = "Arcade";
@@ -684,10 +689,11 @@ var initRenderer = function(){
 
                 // ghost house door
                 i=0;
+                var doorColor = (gameMode == GAME_XRPMAN) ? "#FF88AA" : "#ffb8de";
                 for (y=0; y<map.numRows; y++)
                 for (x=0; x<map.numCols; x++) {
                     if (map.currentTiles[i] == '-' && map.currentTiles[i+1] == '-') {
-                        bgCtx.fillStyle = "#ffb8de";
+                        bgCtx.fillStyle = doorColor;
                         bgCtx.fillRect(x*tileSize,y*tileSize+tileSize-2,tileSize*2,2);
                     }
                     i++;
@@ -747,7 +753,13 @@ var initRenderer = function(){
                     bgCtx.translate(3*tileSize, (numRows-1)*tileSize);
                     bgCtx.scale(0.85, 0.85);
                     var lives = extraLives == Infinity ? 1 : extraLives;
-                    if (gameMode == GAME_PACMAN) {
+                    if (gameMode == GAME_XRPMAN) {
+                        for (i=0; i<lives; i++) {
+                            atlas.drawXRPManSprite(bgCtx, 0,0, DIR_LEFT, 1);
+                            bgCtx.translate(2*tileSize,0);
+                        }
+                    }
+                    else if (gameMode == GAME_PACMAN) {
                         for (i=0; i<lives; i++) {
                             drawPacmanSprite(bgCtx, 0,0, DIR_LEFT, Math.PI/6);
                             bgCtx.translate(2*tileSize,0);
@@ -876,10 +888,23 @@ var initRenderer = function(){
                 bgCtx.translate(-0.5, -0.5);
             }
             else if (tile == 'o') {
-                bgCtx.fillStyle = map.pelletColor;
-                bgCtx.beginPath();
-                bgCtx.arc(x*tileSize+midTile.x+0.5,y*tileSize+midTile.y,this.energizerSize/2,0,Math.PI*2);
-                bgCtx.fill();
+                if (gameMode == GAME_XRPMAN) {
+                    // Green glowing power pellets (whale transactions)
+                    bgCtx.fillStyle = '#00FF88';
+                    bgCtx.beginPath();
+                    bgCtx.arc(x*tileSize+midTile.x+0.5,y*tileSize+midTile.y,this.energizerSize/2,0,Math.PI*2);
+                    bgCtx.fill();
+                    bgCtx.strokeStyle = 'rgba(0,255,136,0.4)';
+                    bgCtx.lineWidth = 1;
+                    bgCtx.beginPath();
+                    bgCtx.arc(x*tileSize+midTile.x+0.5,y*tileSize+midTile.y,this.energizerSize/2+1,0,Math.PI*2);
+                    bgCtx.stroke();
+                } else {
+                    bgCtx.fillStyle = map.pelletColor;
+                    bgCtx.beginPath();
+                    bgCtx.arc(x*tileSize+midTile.x+0.5,y*tileSize+midTile.y,this.energizerSize/2,0,Math.PI*2);
+                    bgCtx.fill();
+                }
             }
             if (!isTranslated) {
                 bgCtx.translate(-mapPad,-mapPad);
@@ -892,25 +917,54 @@ var initRenderer = function(){
             ctx.textBaseline = "top";
             ctx.fillStyle = "#FFF";
 
-            ctx.textAlign = "right";
-            ctx.fillText("1UP", 6*tileSize, 0);
-            ctx.fillText(practiceMode ? "PRACTICE" : "HIGH SCORE", 19*tileSize, 0);
-            //ctx.fillText("2UP", 25*tileSize, 0);
+            if (gameMode == GAME_XRPMAN) {
+                // XRP Man HUD
+                ctx.textAlign = "left";
+                ctx.fillStyle = "#FFD700";
+                ctx.font = (tileSize-2) + "px ArcadeR";
+                ctx.fillText("XRP MAN", 1*tileSize, 1);
 
-            // TODO: player two score
-            var score = getScore();
-            if (score == 0) {
-                score = "00";
-            }
-            var y = tileSize+1;
-            ctx.fillText(score, 7*tileSize, y);
+                // Level name
+                ctx.fillStyle = "#0088CC";
+                var lvlName = getXRPLevelName();
+                ctx.textAlign = "right";
+                ctx.fillText("LVL " + level + ": " + lvlName, 27*tileSize, 1);
 
-            if (!practiceMode) {
+                // Score
+                ctx.fillStyle = "#FFF";
+                ctx.font = tileSize + "px ArcadeR";
+                ctx.textAlign = "left";
+                var score = getScore();
+                if (score == 0) score = "00";
+                ctx.fillText(score, 1*tileSize, tileSize+2);
+
+                // High score
+                ctx.fillStyle = "#888";
+                ctx.font = (tileSize-2) + "px ArcadeR";
+                ctx.textAlign = "right";
                 var highScore = getHighScore();
-                if (highScore == 0) {
-                    highScore = "00";
+                if (highScore == 0) highScore = "00";
+                ctx.fillText("HI " + highScore, 27*tileSize, tileSize+2);
+            }
+            else {
+                ctx.textAlign = "right";
+                ctx.fillText("1UP", 6*tileSize, 0);
+                ctx.fillText(practiceMode ? "PRACTICE" : "HIGH SCORE", 19*tileSize, 0);
+
+                var score = getScore();
+                if (score == 0) {
+                    score = "00";
                 }
-                ctx.fillText(highScore, 17*tileSize, y);
+                var y = tileSize+1;
+                ctx.fillText(score, 7*tileSize, y);
+
+                if (!practiceMode) {
+                    var highScore = getHighScore();
+                    if (highScore == 0) {
+                        highScore = "00";
+                    }
+                    ctx.fillText(highScore, 17*tileSize, y);
+                }
             }
         },
 
@@ -979,7 +1033,20 @@ var initRenderer = function(){
         drawDyingPlayer: function(t) {
             var frame = pacman.getAnimFrame();
 
-            if (gameMode == GAME_PACMAN) {
+            if (gameMode == GAME_XRPMAN) {
+                // Same as Pac-Man dying animation but with XRP Man sprite
+                var f = t*75;
+                if (f <= 60) {
+                    t = f/60;
+                    var a = frame*Math.PI/6;
+                    drawPacmanSprite(ctx, pacman.pixel.x, pacman.pixel.y, pacman.dirEnum, a + t*(Math.PI-a),4*t);
+                }
+                else {
+                    f -= 60;
+                    this.drawExplodingPlayer(f/15);
+                }
+            }
+            else if (gameMode == GAME_PACMAN) {
                 // 60 frames dying
                 // 15 frames exploding
                 var f = t*75;
@@ -1043,28 +1110,69 @@ var initRenderer = function(){
             if (fruit.getCurrentFruit()) {
                 var name = fruit.getCurrentFruit().name;
 
-                // draw history trails of the fruit if applicable
-                if (fruit.savedPixel) {
-                    vcr.drawHistory(ctx, function(t) {
-                        var pixel = fruit.savedPixel[t];
-                        if (pixel) {
-                            atlas.drawFruitSprite(ctx, pixel.x, pixel.y, name);
+                if (gameMode == GAME_XRPMAN) {
+                    // XRP Man fruits are drawn directly using sprite functions
+                    if (fruit.isPresent()) {
+                        var drawFunc = getSpriteFuncFromFruitName(name);
+                        if (drawFunc) {
+                            drawFunc(ctx, fruit.pixel.x, fruit.pixel.y);
                         }
-                    });
-                }
-
-                if (fruit.isPresent()) {
-                    atlas.drawFruitSprite(ctx, fruit.pixel.x, fruit.pixel.y, name);
-                }
-                else if (fruit.isScorePresent()) {
-                    if (gameMode == GAME_PACMAN) {
-                        atlas.drawPacFruitPoints(ctx, fruit.pixel.x, fruit.pixel.y, fruit.getPoints());
                     }
-                    else {
-                        atlas.drawMsPacFruitPoints(ctx, fruit.pixel.x, fruit.pixel.y, fruit.getPoints());
+                    else if (fruit.isScorePresent()) {
+                        ctx.font = (tileSize) + "px ArcadeR";
+                        ctx.textBaseline = "middle";
+                        ctx.textAlign = "center";
+                        ctx.fillStyle = "#FFD700";
+                        ctx.fillText(fruit.getPoints(), fruit.pixel.x, fruit.pixel.y);
+                    }
+                }
+                else {
+                    // draw history trails of the fruit if applicable
+                    if (fruit.savedPixel) {
+                        vcr.drawHistory(ctx, function(t) {
+                            var pixel = fruit.savedPixel[t];
+                            if (pixel) {
+                                atlas.drawFruitSprite(ctx, pixel.x, pixel.y, name);
+                            }
+                        });
+                    }
+
+                    if (fruit.isPresent()) {
+                        atlas.drawFruitSprite(ctx, fruit.pixel.x, fruit.pixel.y, name);
+                    }
+                    else if (fruit.isScorePresent()) {
+                        if (gameMode == GAME_PACMAN) {
+                            atlas.drawPacFruitPoints(ctx, fruit.pixel.x, fruit.pixel.y, fruit.getPoints());
+                        }
+                        else {
+                            atlas.drawMsPacFruitPoints(ctx, fruit.pixel.x, fruit.pixel.y, fruit.getPoints());
+                        }
                     }
                 }
             }
+        },
+
+        // Draw XRP Man ghost house transaction ticker
+        drawGhostHouseTicker: function() {
+            if (gameMode != GAME_XRPMAN || !xrpCurrentTx) return;
+
+            // Ghost house interior coordinates (the ghost pen area)
+            var ghX = 11*tileSize;
+            var ghY = 15*tileSize + 2;
+            var ghW = 6*tileSize;
+            var ghH = 2.5*tileSize;
+
+            // Draw current transaction
+            ctx.fillStyle = xrpCurrentTx.color;
+            ctx.font = 'bold ' + (tileSize-4) + 'px ArcadeR';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(xrpCurrentTx.text, ghX + ghW/2, ghY + ghH/2 - 1);
+
+            // "validating..." label
+            ctx.fillStyle = '#444';
+            ctx.font = (tileSize-5) + 'px ArcadeR';
+            ctx.fillText('validating...', ghX + ghW/2, ghY + ghH/2 + tileSize - 2);
         },
 
     });

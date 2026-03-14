@@ -219,6 +219,11 @@ Player.prototype.update = function(j) {
             fruit.onDotEat();
             addScore((t=='.') ? 10 : 50);
 
+            // Update ghost house transaction ticker
+            if (gameMode == GAME_XRPMAN) {
+                xrpTickerUpdate();
+            }
+
             if (t=='o')
                 energizer.activate();
         }
