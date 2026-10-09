@@ -120,7 +120,7 @@ var leaderboard = (function() {
             "line-height:1.6;white-space:nowrap}" +
             "#lb-side[hidden]{display:none}" +
             "#lb-side .t{color:#FFD700;font-size:1.25em;margin-bottom:.5em}" +
-            "#lb-side .r{display:grid;grid-template-columns:5ch 8ch 17ch;column-gap:1.2ch}" +
+            "#lb-side .r{display:grid;grid-template-columns:5ch 8ch max-content;column-gap:1.2ch}" +
             "#lb-side .r span:nth-child(2){text-align:right}" +
             "#lb-side .h{color:#FFE14D;margin-bottom:.3em}";
         document.head.appendChild(style);
