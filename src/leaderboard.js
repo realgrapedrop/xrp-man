@@ -281,7 +281,7 @@ var leaderboard = (function() {
         draw: function(ctx, top) {
             if (placeSide()) return;
             var size = tileSize - 2;
-            var step = 1.15 * tileSize;
+            var step = 1.05 * tileSize;
             var rankX = 2 * tileSize;
             var scoreX = 12 * tileSize;
             var nameX = 13 * tileSize;

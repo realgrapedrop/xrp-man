@@ -152,7 +152,7 @@ var homeState = (function(){
                     ctx.fillText(g.desc2, cx, y + 3.8*tileSize + 4);
                 }
 
-                leaderboard.draw(ctx, 21*tileSize);
+                leaderboard.draw(ctx, 22.5*tileSize);
             });
         },
         update: function() {

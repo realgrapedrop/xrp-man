@@ -2,20 +2,29 @@
 // Input
 // (Handles all key presses and touches)
 
-// Unlock audio for iOS (must be called from user gesture)
+// Unlock audio for iOS. Safari only allows playback from a finished tap, click or key
+// press (not touchstart), so this runs on those and keeps trying until playback is
+// allowed. It also asks for media playback, so the ring/silent switch doesn't mute it.
 var xrpAudioUnlocked = false;
+var xrpAudioUnlocking = false;
 var unlockXRPAudio = function() {
-    if (xrpAudioUnlocked) return;
-    xrpAudioUnlocked = true;
-    audio.eating.unlock();
-    audio.die.unlock();
-    audio.eatingGhost.unlock();
-    audio.eatingFruit.unlock();
-    audio.ghostTurnToBlue.unlock();
-    audio.ghostNormalMove.unlock();
-    audio.ghostReturnToHome.unlock();
-    audio.extend.unlock();
+    if (xrpAudioUnlocked || xrpAudioUnlocking) return;
+    try {
+        if (navigator.audioSession) navigator.audioSession.type = 'playback';
+    } catch (e) {}
+    xrpAudioUnlocking = true;
+    var tries = [];
+    for (var s in audio) {
+        if (audio[s] && typeof audio[s].unlock == 'function') tries.push(audio[s].unlock());
+    }
+    Promise.all(tries).then(function(results) {
+        xrpAudioUnlocking = false;
+        if (results.some(Boolean)) xrpAudioUnlocked = true;
+    });
 };
+['touchend', 'click', 'keydown'].forEach(function(type) {
+    document.addEventListener(type, unlockXRPAudio, true);
+});
 
 (function(){
 
@@ -251,8 +260,8 @@ var initSwipe = function() {
         if (fingerCount == 1) {
 
             // XRP Man: tap to start game from start/final screen
+            // (audio unlocks on the touchend that follows; iOS rejects it here)
             if ((state == homeState || state == xrpFinalState) && !leaderboard.isOpen()) {
-                unlockXRPAudio();
                 gameMode = GAME_XRPMAN;
                 practiceMode = false;
                 turboMode = false;

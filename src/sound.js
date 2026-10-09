@@ -5,8 +5,10 @@ var audio = new preloadAudio();
 function audioTrack(url, volume) {
     var audio = new Audio(url);
     if (volume) audio.volume = volume;
+    audio.setAttribute('playsinline', '');
     audio.load();
     var looping = false;
+    var requested = false;   // the game asked for this sound while an unlock was running
     this.play = function(noResetTime) {
         playSound(noResetTime);
     };
@@ -29,16 +31,25 @@ function audioTrack(url, volume) {
         return audio.paused;
     };
     this.stop = this.stopLoop;
-    // Briefly play and pause to unlock this audio on iOS
+    // Briefly play and pause, muted, to unlock this audio on iOS. iOS ignores volume
+    // changes, so this mutes instead. Resolves true when the browser allowed playback.
     this.unlock = function() {
-        var vol = audio.volume;
-        audio.volume = 0;
-        audio.play().then(function(){
-            audio.pause();
-            audio.currentTime = 0;
-            audio.volume = vol;
+        if (!audio.paused) return Promise.resolve(true);
+        requested = false;
+        audio.muted = true;
+        var p;
+        try { p = audio.play(); } catch (e) { p = null; }
+        if (!p) { audio.muted = false; return Promise.resolve(false); }
+        return p.then(function(){
+            if (!requested) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            audio.muted = false;
+            return true;
         }).catch(function(){
-            audio.volume = vol;
+            audio.muted = false;
+            return false;
         });
     };
 
@@ -46,6 +57,8 @@ function audioTrack(url, volume) {
         playSound(noResetTime);
     }
     function playSound(noResetTime) {
+        requested = true;
+        audio.muted = false;
         // for really rapid sound repeat set noResetTime
         if(!audio.paused) {
             audio.pause();
