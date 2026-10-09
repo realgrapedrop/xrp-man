@@ -21,10 +21,6 @@ var leaderboard = (function() {
     var session = null;
     var pending = null;     // the finished game waiting for a handle: {score, level, done}
     var ui = null;
-    var side = null;        // the desktop board beside the game screen
-    var sideShown = false;
-    var sideTimer = null;
-    var sideKey = "";
 
     var post = function(path, body) {
         return fetch(API + path, {
@@ -110,98 +106,6 @@ var leaderboard = (function() {
         return ui;
     };
 
-    // On wide screens the board sits in the page's empty space left of the game screen,
-    // top-aligned with "LEARN TO LEDGER WITH". Narrow screens keep it on the canvas.
-    var buildSide = function() {
-        if (side) return side;
-        var style = document.createElement("style");
-        style.textContent =
-            "#lb-side{position:fixed;z-index:5;pointer-events:none;font-family:ArcadeR,'Courier New',monospace;" +
-            "line-height:1.6;white-space:nowrap}" +
-            "#lb-side[hidden]{display:none}" +
-            "#lb-side .t{color:#FFD700;font-size:1.25em;margin-bottom:.5em;text-align:center}" +
-            "#lb-side .r{display:grid;grid-template-columns:5ch 8ch max-content;column-gap:1.2ch}" +
-            "#lb-side .r span:nth-child(2){text-align:right}" +
-            "#lb-side .h{color:#FFE14D;margin-bottom:.3em}";
-        document.head.appendChild(style);
-        side = document.createElement("div");
-        side.id = "lb-side";
-        side.hidden = true;
-        side.setAttribute("aria-label", "High scores");
-        document.body.appendChild(side);
-        return side;
-    };
-
-    var fillSide = function() {
-        var key = JSON.stringify(board);
-        if (key == sideKey) return;
-        sideKey = key;
-        side.replaceChildren();
-        var title = document.createElement("div");
-        title.className = "t";
-        title.textContent = "HIGH SCORES";
-        side.append(title);
-        var row = function(cls, color, cells, dim) {
-            var r = document.createElement("div");
-            r.className = "r" + (cls ? " " + cls : "");
-            if (color) r.style.color = color;
-            if (dim) r.style.opacity = "0.35";
-            for (var i = 0; i < cells.length; i++) {
-                var c = document.createElement("span");
-                c.textContent = cells[i];      // handles come from other players: text only
-                r.append(c);
-            }
-            side.append(r);
-        };
-        row("h", null, ["RANK", "SCORE", "NAME"]);
-        for (var i = 0; i < 10; i++) {
-            var e = board[i];
-            row("", RANK_COLORS[i],
-                [RANK_LABELS[i], e ? String(e.score) : "-----", e ? "@" + e.handle.toUpperCase() : "---"], !e);
-        }
-    };
-
-    var hideSide = function() {
-        sideShown = false;
-        if (side) side.hidden = true;
-    };
-
-    // Returns true when the side board is showing, so the canvas skips its own copy.
-    var placeSide = function() {
-        var canvas = document.getElementById("canvas");
-        if (!canvas || typeof renderScale != "number") return false;
-        buildSide();
-        fillSide();
-        var rect = canvas.getBoundingClientRect();
-        var s = rect.width / screenWidth;
-        var mapLeft = rect.left + mapMargin * s;
-        var avail = mapLeft - 24;
-        var size = Math.min(16, (tileSize - 1) * s);
-        side.style.fontSize = size + "px";
-        side.hidden = false;
-        var w = side.offsetWidth;
-        if (w > avail) {
-            size = size * avail / w;
-            side.style.fontSize = size + "px";
-            w = side.offsetWidth;
-        }
-        if (size < 9) {          // too small to read: keep the board on the canvas
-            hideSide();
-            return false;
-        }
-        side.style.left = Math.round(mapLeft - 8 - w) + "px";
-        side.style.top = Math.round(rect.top + (mapMargin + mapPad + 4 * tileSize) * s) + "px";
-        sideShown = true;
-        // Hide again soon after the home screen stops drawing (a game started). The game
-        // loop also pauses while the window is out of focus: keep the board up then, and
-        // the next frame after focus returns resets this timer.
-        clearTimeout(sideTimer);
-        sideTimer = setTimeout(function() {
-            if (document.hasFocus()) hideSide();
-        }, 300);
-        return true;
-    };
-
     var open = function() {
         build();
         ui.score.textContent = "SCORE " + pending.score;
@@ -262,7 +166,6 @@ var leaderboard = (function() {
         startGame: function() {
             session = null;
             hide();
-            hideSide();
             post("/session", { game: GAME }).then(function(data) {
                 if (data.httpOk && typeof data.token == "string") session = data.token;
             }).catch(function() {});
@@ -280,30 +183,34 @@ var leaderboard = (function() {
             });
         },
 
-        // Drawn on the home screen: beside the game screen when there is room, otherwise
-        // under the ghost showcase, in map coordinates.
+        // Drawn on the home screen under the ghost showcase, in map coordinates.
         draw: function(ctx, top) {
-            if (placeSide()) return;
-            var size = tileSize - 2;
-            var step = 1.05 * tileSize;
-            // Center the table under the title: its width runs to the end of the longest name
+            var size = tileSize - 1;
+            var step = 1.1 * tileSize;
             ctx.font = size + "px ArcadeR";
+            // Center the table under the title: its width runs to the end of the longest
+            // name. Shrink the font if a long name would not fit.
             var nameW = ctx.measureText("NAME").width;
             for (var j = 0; j < 10; j++) {
-                var n = board[j] ? "@" + board[j].handle.toUpperCase() : "---";
-                nameW = Math.max(nameW, ctx.measureText(n).width);
+                if (board[j]) nameW = Math.max(nameW, ctx.measureText("@" + board[j].handle.toUpperCase()).width);
             }
-            var rankX = Math.max(tileSize / 2, (mapWidth - 11 * tileSize - nameW) / 2);
-            var scoreX = rankX + 10 * tileSize;
-            var nameX = rankX + 11 * tileSize;
+            var tableW = 12.5 * tileSize + nameW;
+            var k = Math.min(1, (mapWidth - tileSize) / tableW);
+            if (k < 1) {
+                size = size * k;
+                ctx.font = size + "px ArcadeR";
+            }
+            var rankX = (mapWidth - tableW * k) / 2;
+            var scoreX = rankX + 11 * tileSize * k;
+            var nameX = rankX + 12.5 * tileSize * k;
             ctx.textBaseline = "top";
             ctx.textAlign = "center";
-            ctx.font = (tileSize - 1) + "px ArcadeR";
+            ctx.font = tileSize + "px ArcadeR";
             ctx.fillStyle = "#FFD700";
             ctx.fillText("HIGH SCORES", mapWidth / 2, top);
 
             ctx.font = size + "px ArcadeR";
-            var head = top + 1.6 * tileSize;
+            var head = top + 1.7 * tileSize;
             ctx.fillStyle = "#FFE14D";
             ctx.textAlign = "left";
             ctx.fillText("RANK", rankX, head);
@@ -314,8 +221,8 @@ var leaderboard = (function() {
 
             for (var i = 0; i < 10; i++) {
                 var e = board[i];
-                var y = head + 1.4 * tileSize + i * step;
-                ctx.globalAlpha = e ? 1 : 0.35;     // empty ranks stay on the table, dimmed
+                var y = head + 1.5 * tileSize + i * step;
+                ctx.globalAlpha = e ? 1 : 0.7;      // empty ranks stay on the table, dimmed
                 ctx.fillStyle = RANK_COLORS[i];
                 ctx.textAlign = "left";
                 ctx.fillText(RANK_LABELS[i], rankX, y);
