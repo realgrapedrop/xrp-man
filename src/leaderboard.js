@@ -286,9 +286,16 @@ var leaderboard = (function() {
             if (placeSide()) return;
             var size = tileSize - 2;
             var step = 1.05 * tileSize;
-            var rankX = 2 * tileSize;
-            var scoreX = 12 * tileSize;
-            var nameX = 13 * tileSize;
+            // Center the table under the title: its width runs to the end of the longest name
+            ctx.font = size + "px ArcadeR";
+            var nameW = ctx.measureText("NAME").width;
+            for (var j = 0; j < 10; j++) {
+                var n = board[j] ? "@" + board[j].handle.toUpperCase() : "---";
+                nameW = Math.max(nameW, ctx.measureText(n).width);
+            }
+            var rankX = Math.max(tileSize / 2, (mapWidth - 11 * tileSize - nameW) / 2);
+            var scoreX = rankX + 10 * tileSize;
+            var nameX = rankX + 11 * tileSize;
             ctx.textBaseline = "top";
             ctx.textAlign = "center";
             ctx.font = (tileSize - 1) + "px ArcadeR";
