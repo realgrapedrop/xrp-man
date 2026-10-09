@@ -61,3 +61,5 @@ XRP Man re-theme by [Grapedrop](https://github.com/realgrapedrop). A [Koi](https
 ## License
 
 GPL-3.0 -- inherited from web-pacman. See [LICENSE](LICENSE) for details.
+
+I develop XRP Man on a private server. Every change is mirrored to this GitHub repo, so it always holds the full source.
