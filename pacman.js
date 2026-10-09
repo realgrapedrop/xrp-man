@@ -10056,7 +10056,7 @@ var leaderboard = (function() {
             "#lb-side{position:fixed;z-index:5;pointer-events:none;font-family:ArcadeR,'Courier New',monospace;" +
             "line-height:1.6;white-space:nowrap}" +
             "#lb-side[hidden]{display:none}" +
-            "#lb-side .t{color:#FFD700;font-size:1.25em;margin-bottom:.5em}" +
+            "#lb-side .t{color:#FFD700;font-size:1.25em;margin-bottom:.5em;text-align:center}" +
             "#lb-side .r{display:grid;grid-template-columns:5ch 8ch max-content;column-gap:1.2ch}" +
             "#lb-side .r span:nth-child(2){text-align:right}" +
             "#lb-side .h{color:#FFE14D;margin-bottom:.3em}";
@@ -10129,9 +10129,13 @@ var leaderboard = (function() {
         side.style.left = Math.round(mapLeft - 8 - w) + "px";
         side.style.top = Math.round(rect.top + (mapMargin + mapPad + 4 * tileSize) * s) + "px";
         sideShown = true;
-        // Hide again soon after the home screen stops drawing (a game started)
+        // Hide again soon after the home screen stops drawing (a game started). The game
+        // loop also pauses while the window is out of focus: keep the board up then, and
+        // the next frame after focus returns resets this timer.
         clearTimeout(sideTimer);
-        sideTimer = setTimeout(hideSide, 300);
+        sideTimer = setTimeout(function() {
+            if (document.hasFocus()) hideSide();
+        }, 300);
         return true;
     };
 
