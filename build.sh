@@ -45,6 +45,7 @@ for file in \
     elroyTimer.js \
     energizer.js \
     fruit.js \
+    leaderboard.js \
     executive.js \
     states.js \
     input.js \
@@ -64,12 +65,16 @@ echo "})();" >> $OUTPUT
 # update timestamp — use perl to avoid sed delimiter issues
 perl -pi -e "s/last updated:[^<]*/last updated: $(date '+%Y-%m-%d %H:%M:%S') -->/" index.html
 
+# stamp the bundle URL with the build time, so Cloudflare's cached copy of the old
+# pacman.js is never served after a deploy
+perl -pi -e "s/<script src=\"pacman\.js[^\"]*\"><\/script>/<script src=\"pacman.js?v=$(date '+%Y%m%d%H%M%S')\"><\/script>/" index.html
+
 # build debug.html from index.html replacing pacman.js script tag with individual includes
 python3 -c "
 import re
 with open('index.html') as f: content = f.read()
 includes = '''$debug_includes'''
-content = re.sub(r'<script src=\"pacman.js\"></script>', includes.strip(), content)
+content = re.sub(r'<script src=\"pacman\.js[^\"]*\"></script>', includes.strip(), content)
 with open('debug.html', 'w') as f: f.write(content)
 "
 

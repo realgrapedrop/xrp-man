@@ -94,6 +94,7 @@ var homeState = (function(){
             practiceMode = false;
             turboMode = false;
             audio.coffeeBreakMusic.play();
+            leaderboard.refresh();
         },
         draw: function() {
             renderer.clearMapFrame();
@@ -150,6 +151,8 @@ var homeState = (function(){
                     ctx.fillText(g.desc, cx, y + 3*tileSize + 4);
                     ctx.fillText(g.desc2, cx, y + 3.8*tileSize + 4);
                 }
+
+                leaderboard.draw(ctx, 21*tileSize);
             });
         },
         update: function() {
@@ -1172,6 +1175,9 @@ var newGameState = (function() {
             level = startLevel-1;
             extraLives = practiceMode ? Infinity : 3;
             setScore(0);
+            if (gameMode == GAME_XRPMAN && !practiceMode && !turboMode) {
+                leaderboard.startGame();
+            }
             setFruitFromGameMode();
             readyNewState.init();
         },
@@ -1661,6 +1667,9 @@ var xrpFinalState = (function() {
         init: function() {
             frames = 0;
             flashTimer = 0;
+            if (gameMode == GAME_XRPMAN && !practiceMode && !turboMode) {
+                leaderboard.endGame(getScore(), level, true);
+            }
         },
         draw: function() {
             renderer.clearMapFrame();
@@ -1783,6 +1792,9 @@ var overState = (function() {
     return {
         init: function() {
             frames = 0;
+            if (gameMode == GAME_XRPMAN && !practiceMode && !turboMode) {
+                leaderboard.endGame(getScore(), level, false);
+            }
         },
         draw: function() {
             renderer.blitMap();

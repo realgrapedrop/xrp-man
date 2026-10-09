@@ -29,6 +29,10 @@ The green glowing orbs in the corners are whale transactions. When you eat one, 
 2. **The DEX** -- Fill trade orders on the built-in decentralized exchange. Blue swap dots.
 3. **Consensus** -- Confirm validator votes as the network reaches consensus. Green checkmark dots.
 
+## Leaderboard
+
+The home screen shows the top 10 high scores. Finish a game with a top 10 score and you can claim your spot with your X handle. Each handle keeps its best score. The board is shared with my other arcade game, XRP Blaster, which hosts the scores on a separate XRP Man board.
+
 ## Controls
 
 - **Swipe**: steer on mobile

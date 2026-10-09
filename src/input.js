@@ -62,7 +62,11 @@ var unlockXRPAudio = function() {
     var keyStates = {};
 
     // hook my key listeners to the window's listeners
+    var typing = function(e) {
+        return e.target instanceof Element && e.target.closest("input, textarea");
+    };
     window.addEventListener("keydown", function(e) {
+        if (typing(e)) return;
         var key = (e||window.event).keyCode;
 
         // only execute at first press event
@@ -72,6 +76,7 @@ var unlockXRPAudio = function() {
         }
     });
     window.addEventListener("keyup",function(e) {
+        if (typing(e)) return;
         var key = (e||window.event).keyCode;
 
         keyStates[key] = false;
@@ -208,7 +213,7 @@ var unlockXRPAudio = function() {
 
     // XRP Man: Start game from home screen or final screen
     var isXRPStartScreen = function() {
-        return state == homeState || state == xrpFinalState;
+        return (state == homeState || state == xrpFinalState) && !leaderboard.isOpen();
     };
     var startXRPGame = function() {
         unlockXRPAudio();
@@ -238,6 +243,7 @@ var initSwipe = function() {
     var r = 4;
     
     var touchStart = function(event) {
+        if (leaderboard.owns(event.target)) return;
         event.preventDefault();
 
 
@@ -245,7 +251,7 @@ var initSwipe = function() {
         if (fingerCount == 1) {
 
             // XRP Man: tap to start game from start/final screen
-            if (state == homeState || state == xrpFinalState) {
+            if ((state == homeState || state == xrpFinalState) && !leaderboard.isOpen()) {
                 unlockXRPAudio();
                 gameMode = GAME_XRPMAN;
                 practiceMode = false;
@@ -266,6 +272,7 @@ var initSwipe = function() {
     };
 
     var touchMove = function(event) {
+        if (leaderboard.owns(event.target)) return;
         event.preventDefault();
         var fingerCount = event.touches.length;
         if (fingerCount == 1) {
@@ -296,15 +303,18 @@ var initSwipe = function() {
     };
 
     var touchEnd = function(event) {
+        if (leaderboard.owns(event.target)) return;
         event.preventDefault();
     };
 
     var touchCancel = function(event) {
+        if (leaderboard.owns(event.target)) return;
         event.preventDefault();
         x=y=dx=dy=0;
     };
 
     var touchTap = function(event) {
+        if (leaderboard.owns(event.target) || leaderboard.isOpen()) return;
         // XRP Man: tap to start game from start/final screen
         if (state == homeState || state == xrpFinalState) {
             unlockXRPAudio();
