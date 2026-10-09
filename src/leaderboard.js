@@ -21,6 +21,10 @@ var leaderboard = (function() {
     var session = null;
     var pending = null;     // the finished game waiting for a handle: {score, level, done}
     var ui = null;
+    var side = null;        // the desktop board beside the game screen
+    var sideShown = false;
+    var sideTimer = null;
+    var sideKey = "";
 
     var post = function(path, body) {
         return fetch(API + path, {
@@ -106,6 +110,94 @@ var leaderboard = (function() {
         return ui;
     };
 
+    // On wide screens the board sits in the page's empty space left of the game screen,
+    // top-aligned with "LEARN TO LEDGER WITH". Narrow screens keep it on the canvas.
+    var buildSide = function() {
+        if (side) return side;
+        var style = document.createElement("style");
+        style.textContent =
+            "#lb-side{position:fixed;z-index:5;pointer-events:none;font-family:ArcadeR,'Courier New',monospace;" +
+            "line-height:1.6;white-space:nowrap}" +
+            "#lb-side[hidden]{display:none}" +
+            "#lb-side .t{color:#FFD700;font-size:1.25em;margin-bottom:.5em}" +
+            "#lb-side .r{display:grid;grid-template-columns:5ch 8ch 17ch;column-gap:1.2ch}" +
+            "#lb-side .r span:nth-child(2){text-align:right}" +
+            "#lb-side .h{color:#FFE14D;margin-bottom:.3em}";
+        document.head.appendChild(style);
+        side = document.createElement("div");
+        side.id = "lb-side";
+        side.hidden = true;
+        side.setAttribute("aria-label", "High scores");
+        document.body.appendChild(side);
+        return side;
+    };
+
+    var fillSide = function() {
+        var key = JSON.stringify(board);
+        if (key == sideKey) return;
+        sideKey = key;
+        side.replaceChildren();
+        var title = document.createElement("div");
+        title.className = "t";
+        title.textContent = "HIGH SCORES";
+        side.append(title);
+        var row = function(cls, color, cells, dim) {
+            var r = document.createElement("div");
+            r.className = "r" + (cls ? " " + cls : "");
+            if (color) r.style.color = color;
+            if (dim) r.style.opacity = "0.35";
+            for (var i = 0; i < cells.length; i++) {
+                var c = document.createElement("span");
+                c.textContent = cells[i];      // handles come from other players: text only
+                r.append(c);
+            }
+            side.append(r);
+        };
+        row("h", null, ["RANK", "SCORE", "NAME"]);
+        for (var i = 0; i < 10; i++) {
+            var e = board[i];
+            row("", RANK_COLORS[i],
+                [RANK_LABELS[i], e ? String(e.score) : "-----", e ? "@" + e.handle.toUpperCase() : "---"], !e);
+        }
+    };
+
+    var hideSide = function() {
+        sideShown = false;
+        if (side) side.hidden = true;
+    };
+
+    // Returns true when the side board is showing, so the canvas skips its own copy.
+    var placeSide = function() {
+        var canvas = document.getElementById("canvas");
+        if (!canvas || typeof renderScale != "number") return false;
+        buildSide();
+        fillSide();
+        var rect = canvas.getBoundingClientRect();
+        var s = rect.width / screenWidth;
+        var mapLeft = rect.left + mapMargin * s;
+        var avail = mapLeft - 24;
+        var size = Math.min(16, (tileSize - 1) * s);
+        side.style.fontSize = size + "px";
+        side.hidden = false;
+        var w = side.offsetWidth;
+        if (w > avail) {
+            size = size * avail / w;
+            side.style.fontSize = size + "px";
+            w = side.offsetWidth;
+        }
+        if (size < 9) {          // too small to read: keep the board on the canvas
+            hideSide();
+            return false;
+        }
+        side.style.left = Math.round(mapLeft - 8 - w) + "px";
+        side.style.top = Math.round(rect.top + (mapMargin + mapPad + 4 * tileSize) * s) + "px";
+        sideShown = true;
+        // Hide again soon after the home screen stops drawing (a game started)
+        clearTimeout(sideTimer);
+        sideTimer = setTimeout(hideSide, 300);
+        return true;
+    };
+
     var open = function() {
         build();
         ui.score.textContent = "SCORE " + pending.score;
@@ -166,6 +258,7 @@ var leaderboard = (function() {
         startGame: function() {
             session = null;
             hide();
+            hideSide();
             post("/session", { game: GAME }).then(function(data) {
                 if (data.httpOk && typeof data.token == "string") session = data.token;
             }).catch(function() {});
@@ -183,8 +276,10 @@ var leaderboard = (function() {
             });
         },
 
-        // Drawn on the home screen under the ghost showcase, in map coordinates.
+        // Drawn on the home screen: beside the game screen when there is room, otherwise
+        // under the ghost showcase, in map coordinates.
         draw: function(ctx, top) {
+            if (placeSide()) return;
             var size = tileSize - 2;
             var step = 1.15 * tileSize;
             var rankX = 2 * tileSize;
